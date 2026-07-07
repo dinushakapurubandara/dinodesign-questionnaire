@@ -1204,6 +1204,7 @@
         const sw = document.createElement('div');
         sw.className = 'dq-swatch';
         sw.style.background = c;
+        sw.dataset.hex = c;
         const rm = document.createElement('button');
         rm.className = 'dq-swatch-rm';
         rm.type = 'button';
@@ -1336,7 +1337,7 @@
   function collectAnswers(){
     const val = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
     const selectedChips = gridId => Array.from(document.querySelectorAll('#'+gridId+' .dq-chip.dq-selected')).map(c => c.textContent.trim()).join(', ');
-    const swatchColors = rowId => Array.from(document.querySelectorAll('#'+rowId+' .dq-swatch')).map(s => s.style.background).join(', ');
+    const swatchColors = rowId => Array.from(document.querySelectorAll('#'+rowId+' .dq-swatch')).map(s => s.dataset.hex ? s.dataset.hex.toUpperCase() : s.style.background).join(', ');
     const selectedTypeStyles = Array.from(document.querySelectorAll('#typeGrid .dq-type-card.dq-selected')).map(c => c.querySelector('.dq-type-name').textContent.trim()).join(', ');
 
     return [
@@ -1378,7 +1379,7 @@
   // ── auto-email configuration ──────────────────────────────────────────
   // Paste your EmailJS Public Key, Service ID, and Template ID below.
   const EMAILJS_PUBLIC_KEY = 'z8Gx3cEZdYwx9567c';
-  const EMAILJS_SERVICE_ID = 'dino_logo_des_questions';
+  const EMAILJS_SERVICE_ID = 'service_92fadte';
   const EMAILJS_TEMPLATE_ID = 'template_924ckcd';
   const NOTIFY_EMAIL = 'dinushakapurubandara@gmail.com';
   // ───────────────────────────────────────────────────────────────────────
