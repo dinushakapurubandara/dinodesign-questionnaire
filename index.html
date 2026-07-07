@@ -599,6 +599,77 @@
     .dq-cp-picker{ width:100%; flex:1 1 100%; }
     .dq-cp-square{ height:220px; }
   }
+  .dq-modal-overlay{
+    position:fixed; inset:0;
+    background: rgba(16,16,16,0.45);
+    display:flex; align-items:center; justify-content:center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .dq-modal-overlay[hidden]{ display:none; }
+  .dq-modal{
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: 0 24px 60px -20px rgba(0,0,0,.35);
+    padding: 40px 36px;
+    max-width: 420px;
+    width:100%;
+    text-align:center;
+  }
+  .dq-modal-icon{
+    width:48px; height:48px;
+    border-radius:50%;
+    border:1.5px solid var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 20px;
+  }
+  .dq-modal-icon svg{ width:20px; height:20px; color: var(--ink); }
+  .dq-modal h2{ font-size:20px; font-weight:600; letter-spacing:-.01em; margin-bottom:8px; }
+  .dq-modal p{ font-size:14px; color: var(--ink-soft); line-height:1.5; margin-bottom:22px; }
+  .dq-modal-link-row{
+    display:flex; gap:8px;
+    margin-bottom:22px;
+  }
+  .dq-modal-link-row input{
+    flex:1;
+    min-width:0;
+    font-family: var(--font);
+    font-size:13px;
+    color: var(--ink-soft);
+    background:#f5f5f5;
+    border:1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding:10px 12px;
+    outline:none;
+  }
+  .dq-modal-link-row button{
+    background: var(--ink);
+    color:#fff;
+    border:none;
+    border-radius: var(--radius-sm);
+    padding:10px 16px;
+    font-family: var(--font);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+    transition: background .15s;
+  }
+  .dq-modal-link-row button:hover{ background:#000; }
+  .dq-modal-done{
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    padding: 11px 28px;
+    font-family: var(--font);
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition: background .15s, color .15s;
+  }
+  .dq-modal-done:hover{ background: var(--ink); color:#fff; }
+
   @media (prefers-reduced-motion: reduce){
     .dq-card, .dq-progress-fill, .dq-btn-next, .dq-chip, .dq-type-card{ transition:none !important; }
   }
@@ -1006,6 +1077,21 @@
       <div class="dq-outro-footer" id="outroFooter"></div>
     </div>
 
+  </div>
+</div>
+
+<div class="dq-modal-overlay" id="shareModalOverlay" hidden>
+  <div class="dq-modal">
+    <div class="dq-modal-icon">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h2 id="shareModalTitle">Saved to Google Drive</h2>
+    <p id="shareModalSubtitle">Anyone with this link can view the file.</p>
+    <div class="dq-modal-link-row">
+      <input type="text" id="shareModalLink" readonly>
+      <button type="button" id="shareModalCopyBtn">Copy Link</button>
+    </div>
+    <button type="button" id="shareModalCloseBtn" class="dq-modal-done">Done</button>
   </div>
 </div>
 
@@ -1448,6 +1534,46 @@
     });
   }
 
+  // styled share-link modal, used in place of native alert() popups
+  const shareModalOverlay = document.getElementById('shareModalOverlay');
+  const shareModalTitle = document.getElementById('shareModalTitle');
+  const shareModalSubtitle = document.getElementById('shareModalSubtitle');
+  const shareModalLink = document.getElementById('shareModalLink');
+  const shareModalLinkRow = shareModalLink ? shareModalLink.closest('.dq-modal-link-row') : null;
+  const shareModalCopyBtn = document.getElementById('shareModalCopyBtn');
+  const shareModalCloseBtn = document.getElementById('shareModalCloseBtn');
+
+  function showShareModal(title, subtitle, link){
+    if(!shareModalOverlay) return;
+    shareModalTitle.textContent = title;
+    shareModalSubtitle.textContent = subtitle;
+    if(link){
+      shareModalLink.value = link;
+      if(shareModalLinkRow) shareModalLinkRow.style.display = 'flex';
+    } else if(shareModalLinkRow){
+      shareModalLinkRow.style.display = 'none';
+    }
+    shareModalOverlay.hidden = false;
+  }
+  if(shareModalCopyBtn){
+    shareModalCopyBtn.addEventListener('click', () => {
+      shareModalLink.select();
+      navigator.clipboard.writeText(shareModalLink.value).then(() => {
+        const original = shareModalCopyBtn.textContent;
+        shareModalCopyBtn.textContent = 'Copied!';
+        setTimeout(() => { shareModalCopyBtn.textContent = original; }, 1600);
+      }).catch(() => {});
+    });
+  }
+  if(shareModalCloseBtn){
+    shareModalCloseBtn.addEventListener('click', () => { shareModalOverlay.hidden = true; });
+  }
+  if(shareModalOverlay){
+    shareModalOverlay.addEventListener('click', e => {
+      if(e.target === shareModalOverlay) shareModalOverlay.hidden = true;
+    });
+  }
+
   // Add to Google Drive: opens a small Google sign-in popup, then uploads the PDF
   const gdriveBtn = document.getElementById('gdriveBtn');
   if(gdriveBtn){
@@ -1482,7 +1608,7 @@
               if(!res.ok){ alert('Google Drive upload failed — please try again.'); return; }
               const fileData = await res.json().catch(() => null);
               const fileId = fileData && fileData.id;
-              if(!fileId){ alert('Saved to your Google Drive!'); return; }
+              if(!fileId){ showShareModal('Saved to Google Drive', 'Your file has been saved.', ''); return; }
 
               // make the file viewable by anyone with the link, then build and copy that link
               fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '/permissions', {
@@ -1496,15 +1622,15 @@
                 const shareLink = 'https://drive.google.com/file/d/' + fileId + '/view?usp=sharing';
                 if(navigator.clipboard){
                   navigator.clipboard.writeText(shareLink).then(() => {
-                    alert('Saved to Google Drive! Share link copied to your clipboard:\n' + shareLink);
+                    showShareModal('Saved to Google Drive', 'Anyone with this link can view the file. It\'s already copied to your clipboard.', shareLink);
                   }).catch(() => {
-                    alert('Saved to Google Drive! Here\'s your share link:\n' + shareLink);
+                    showShareModal('Saved to Google Drive', 'Anyone with this link can view the file.', shareLink);
                   });
                 } else {
-                  alert('Saved to Google Drive! Here\'s your share link:\n' + shareLink);
+                  showShareModal('Saved to Google Drive', 'Anyone with this link can view the file.', shareLink);
                 }
               }).catch(() => {
-                alert('Saved to Google Drive! (Could not generate a share link — you can share it manually from Drive.)');
+                showShareModal('Saved to Google Drive', 'Your file has been saved, but a shareable link could not be generated automatically — you can share it manually from Drive.', '');
               });
             }).catch(() => alert('Google Drive upload failed — please try again.'));
           }
