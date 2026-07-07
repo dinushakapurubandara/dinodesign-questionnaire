@@ -504,12 +504,15 @@
   .dq-outro-card{ align-items:center; justify-content:center; text-align:center; padding:68px 56px; }
   .dq-outro-mark{
     width:56px; height:56px;
+    min-width:56px; max-width:56px;
+    flex-shrink:0;
+    aspect-ratio: 1 / 1;
     border-radius:50%;
     border:1.5px solid var(--ink);
     display:flex; align-items:center; justify-content:center;
     margin-bottom:30px;
   }
-  .dq-outro-mark svg{ width:22px; height:22px; }
+  .dq-outro-mark svg{ width:22px; height:22px; flex-shrink:0; }
   .dq-outro-card h1{ font-size: clamp(28px,4.5vw,34px); font-weight:600; letter-spacing:-.01em; margin-bottom:26px; }
   .dq-outro-body{ display:flex; flex-direction:column; gap:20px; max-width:42ch; }
   .dq-outro-card p{ font-size:15.5px; color: var(--ink-soft); line-height:1.7; }
@@ -618,14 +621,60 @@
   }
   .dq-modal-icon{
     width:48px; height:48px;
+    min-width:48px; max-width:48px;
+    flex-shrink:0;
+    aspect-ratio: 1 / 1;
     border-radius:50%;
     border:1.5px solid var(--ink);
     display:flex; align-items:center; justify-content:center;
     margin:0 auto 20px;
   }
-  .dq-modal-icon svg{ width:20px; height:20px; color: var(--ink); }
+  .dq-modal-icon svg{ width:20px; height:20px; flex-shrink:0; color: var(--ink); }
   .dq-modal h2{ font-size:20px; font-weight:600; letter-spacing:-.01em; margin-bottom:8px; }
   .dq-modal p{ font-size:14px; color: var(--ink-soft); line-height:1.5; margin-bottom:22px; }
+  .dq-modal-section{
+    text-align:left;
+    margin-bottom:20px;
+    padding-bottom:20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .dq-modal-section-label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color: var(--ink-soft);
+    margin-bottom:10px;
+  }
+  .dq-modal-person{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .dq-modal-avatar{
+    width:32px; height:32px;
+    min-width:32px; max-width:32px;
+    flex-shrink:0;
+    aspect-ratio: 1/1;
+    border-radius:50%;
+    background: var(--ink);
+    color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px;
+    font-weight:600;
+    text-transform:uppercase;
+  }
+  .dq-modal-person-info{ flex:1; min-width:0; }
+  .dq-modal-person-name{ font-size:14px; font-weight:600; color: var(--ink); }
+  .dq-modal-person-email{ font-size:12px; color: var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .dq-modal-role{ font-size:12px; color: var(--muted); flex-shrink:0; }
+  .dq-modal-access-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:13px;
+    color: var(--ink-soft);
+  }
+  .dq-modal-access-row svg{ flex-shrink:0; color: var(--muted); }
   .dq-modal-link-row{
     display:flex; gap:8px;
     margin-bottom:22px;
@@ -1087,6 +1136,27 @@
     </div>
     <h2 id="shareModalTitle">Saved to Google Drive</h2>
     <p id="shareModalSubtitle">Anyone with this link can view the file.</p>
+
+    <div class="dq-modal-section" id="shareModalPeopleSection" hidden>
+      <span class="dq-modal-section-label">People with access</span>
+      <div class="dq-modal-person">
+        <div class="dq-modal-avatar" id="shareModalAvatar">?</div>
+        <div class="dq-modal-person-info">
+          <div class="dq-modal-person-name" id="shareModalPersonName">You</div>
+          <div class="dq-modal-person-email" id="shareModalPersonEmail"></div>
+        </div>
+        <span class="dq-modal-role">Owner</span>
+      </div>
+    </div>
+
+    <div class="dq-modal-section">
+      <span class="dq-modal-section-label">General access</span>
+      <div class="dq-modal-access-row">
+        <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 0c2.5 2.5 4 5.7 4 10s-1.5 7.5-4 10m0-20c-2.5 2.5-4 5.7-4 10s1.5 7.5 4 10M2.5 9h19M2.5 15h19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span>Anyone with the link — Viewer</span>
+      </div>
+    </div>
+
     <div class="dq-modal-link-row">
       <input type="text" id="shareModalLink" readonly>
       <button type="button" id="shareModalCopyBtn">Copy Link</button>
@@ -1543,7 +1613,12 @@
   const shareModalCopyBtn = document.getElementById('shareModalCopyBtn');
   const shareModalCloseBtn = document.getElementById('shareModalCloseBtn');
 
-  function showShareModal(title, subtitle, link){
+  const shareModalPeopleSection = document.getElementById('shareModalPeopleSection');
+  const shareModalAvatar = document.getElementById('shareModalAvatar');
+  const shareModalPersonName = document.getElementById('shareModalPersonName');
+  const shareModalPersonEmail = document.getElementById('shareModalPersonEmail');
+
+  function showShareModal(title, subtitle, link, person){
     if(!shareModalOverlay) return;
     shareModalTitle.textContent = title;
     shareModalSubtitle.textContent = subtitle;
@@ -1552,6 +1627,15 @@
       if(shareModalLinkRow) shareModalLinkRow.style.display = 'flex';
     } else if(shareModalLinkRow){
       shareModalLinkRow.style.display = 'none';
+    }
+    if(person && person.email && shareModalPeopleSection){
+      shareModalPeopleSection.hidden = false;
+      const displayName = person.name || person.email;
+      shareModalPersonName.textContent = displayName + ' (you)';
+      shareModalPersonEmail.textContent = person.email;
+      shareModalAvatar.textContent = displayName.trim().charAt(0);
+    } else if(shareModalPeopleSection){
+      shareModalPeopleSection.hidden = true;
     }
     shareModalOverlay.hidden = false;
   }
@@ -1590,7 +1674,7 @@
       if(!googleTokenClient){
         googleTokenClient = google.accounts.oauth2.initTokenClient({
           client_id: GOOGLE_CLIENT_ID,
-          scope: 'https://www.googleapis.com/auth/drive.file',
+          scope: 'https://www.googleapis.com/auth/drive.file email profile',
           callback: (resp) => {
             if(!resp || !resp.access_token){ alert('Google Drive connection failed — please try again.'); return; }
             const doc = buildPdfDoc();
@@ -1600,6 +1684,11 @@
             const form = new FormData();
             form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
             form.append('file', blob);
+
+            const userInfoPromise = fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { 'Authorization': 'Bearer ' + resp.access_token }
+            }).then(r => r.ok ? r.json() : null).catch(() => null);
+
             fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
               method: 'POST',
               headers: { 'Authorization': 'Bearer ' + resp.access_token },
@@ -1608,7 +1697,9 @@
               if(!res.ok){ alert('Google Drive upload failed — please try again.'); return; }
               const fileData = await res.json().catch(() => null);
               const fileId = fileData && fileData.id;
-              if(!fileId){ showShareModal('Saved to Google Drive', 'Your file has been saved.', ''); return; }
+              const userInfo = await userInfoPromise;
+              const person = userInfo ? { name: userInfo.name, email: userInfo.email } : null;
+              if(!fileId){ showShareModal('Saved to Google Drive', 'Your file has been saved.', '', person); return; }
 
               // make the file viewable by anyone with the link, then build and copy that link
               fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '/permissions', {
@@ -1622,15 +1713,15 @@
                 const shareLink = 'https://drive.google.com/file/d/' + fileId + '/view?usp=sharing';
                 if(navigator.clipboard){
                   navigator.clipboard.writeText(shareLink).then(() => {
-                    showShareModal('Saved to Google Drive', 'Anyone with this link can view the file. It\'s already copied to your clipboard.', shareLink);
+                    showShareModal('Saved to Google Drive', 'Anyone with this link can view the file. It\'s already copied to your clipboard.', shareLink, person);
                   }).catch(() => {
-                    showShareModal('Saved to Google Drive', 'Anyone with this link can view the file.', shareLink);
+                    showShareModal('Saved to Google Drive', 'Anyone with this link can view the file.', shareLink, person);
                   });
                 } else {
-                  showShareModal('Saved to Google Drive', 'Anyone with this link can view the file.', shareLink);
+                  showShareModal('Saved to Google Drive', 'Anyone with this link can view the file.', shareLink, person);
                 }
               }).catch(() => {
-                showShareModal('Saved to Google Drive', 'Your file has been saved, but a shareable link could not be generated automatically — you can share it manually from Drive.', '');
+                showShareModal('Saved to Google Drive', 'Your file has been saved, but a shareable link could not be generated automatically — you can share it manually from Drive.', '', person);
               });
             }).catch(() => alert('Google Drive upload failed — please try again.'));
           }
