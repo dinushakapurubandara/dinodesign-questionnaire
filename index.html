@@ -7,7 +7,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600&family=Bodoni+Moda:wght@500;600&family=Anton&family=Poppins:wght@500;600&family=Libre+Baskerville:wght@400;700&family=Manrope:wght@500;600&family=Oswald:wght@500;600&family=Allura&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600&family=Bodoni+Moda:wght@500;600&family=Anton&family=Poppins:wght@500;600&family=Libre+Baskerville:wght@400;700&family=Oswald:wght@500;600&family=Allura&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -883,11 +883,6 @@
               <div class="dq-type-name">Classic Serif</div>
               <div class="dq-type-tags">Traditional • Established • Trustworthy</div>
             </div>
-            <div class="dq-type-card" data-font="Manrope">
-              <div class="dq-type-preview" style="font-family:'Manrope'">Aa</div>
-              <div class="dq-type-name">Humanist Sans</div>
-              <div class="dq-type-tags">Friendly • Warm • Approachable</div>
-            </div>
             <div class="dq-type-card" data-font="Oswald">
               <div class="dq-type-preview" style="font-family:'Oswald'">Aa</div>
               <div class="dq-type-name">Condensed</div>
@@ -1013,6 +1008,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
 (function(){
   const TOTAL = 13;
@@ -1065,6 +1061,7 @@
     newCard.scrollTop = 0;
     window.scrollTo({top:0, behavior:'smooth'});
     notifyParentOfHeight();
+    if(order[newIndex] === 'outro') sendCompletionEmail();
   }
 
   function updateProgress(){
@@ -1385,8 +1382,16 @@
   // ── cloud-save configuration ──────────────────────────────────────────
   // Paste your own free Dropbox App key and Google OAuth Client ID below.
   // See the setup notes for exactly how to get each one.
-  const DROPBOX_APP_KEY = 'YOUR_DROPBOX_APP_KEY';
-  const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+  const DROPBOX_APP_KEY = '6mnq5qvknrjpgin';
+  const GOOGLE_CLIENT_ID = '315617596866-40hj8cv21luobaj985a8dtoahgukkvhq.apps.googleusercontent.com';
+  // ───────────────────────────────────────────────────────────────────────
+
+  // ── auto-email configuration ──────────────────────────────────────────
+  // Paste your EmailJS Public Key, Service ID, and Template ID below.
+  const EMAILJS_PUBLIC_KEY = 'z8Gx3cEZdYwx9567c';
+  const EMAILJS_SERVICE_ID = 'dino_logo_des_questions';
+  const EMAILJS_TEMPLATE_ID = 'template_924ckcd';
+  const NOTIFY_EMAIL = 'dinushakapurubandara@gmail.com';
   // ───────────────────────────────────────────────────────────────────────
 
   // if this page was opened as a Dropbox-auth popup, grab the token and
@@ -1577,6 +1582,36 @@
   notifyParentOfHeight();
   setTimeout(notifyParentOfHeight, 400);
   setTimeout(notifyParentOfHeight, 1200);
+
+  // send the collected answers to the studio's inbox once, when the client
+  // reaches the thank-you screen
+  let completionEmailSent = false;
+  function sendCompletionEmail(){
+    if(completionEmailSent) return;
+    if(EMAILJS_PUBLIC_KEY.indexOf('YOUR_EMAILJS') === 0){
+      console.warn('DINODESIGN questionnaire: EmailJS isn\'t configured yet — add your Public Key, Service ID, and Template ID to send completion emails.');
+      return;
+    }
+    if(!window.emailjs){ return; }
+    completionEmailSent = true;
+
+    const brandNameField = document.getElementById('q_brandname');
+    const brandName = (brandNameField && brandNameField.value.trim()) || 'A new client';
+
+    const bodyLines = collectAnswers().map(([label, value]) => label + ':\n' + value + '\n');
+    const messageBody = bodyLines.join('\n');
+
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      to_email: NOTIFY_EMAIL,
+      brand_name: brandName,
+      message: messageBody
+    }).then(() => {
+      console.log('Completion email sent.');
+    }).catch(err => {
+      console.warn('DINODESIGN questionnaire: completion email failed to send.', err);
+    });
+  }
 
   updateProgress();
 })();
