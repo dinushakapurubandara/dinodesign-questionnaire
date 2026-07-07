@@ -542,26 +542,41 @@
     border: 1.5px solid var(--ink);
   }
   .dq-outro-btn-outline:hover{ background: var(--ink); color:#fff; }
-  .dq-share-menu{
+  .dq-email-copy-form{
     display:flex;
-    gap:10px;
-    flex-wrap:wrap;
+    gap:8px;
     justify-content:center;
     margin-top:16px;
+    flex-wrap:wrap;
   }
-  .dq-share-menu[hidden]{ display:none; }
-  .dq-share-menu button{
-    background:#f5f5f5;
-    border:1px solid var(--line);
-    border-radius:999px;
-    padding:9px 18px;
-    font-size:13px;
+  .dq-email-copy-form[hidden]{ display:none; }
+  .dq-email-copy-form input{
     font-family: var(--font);
-    color: var(--ink-soft);
-    cursor:pointer;
-    transition: border-color .15s, color .15s;
+    font-size:14px;
+    color: var(--ink);
+    background: #f5f5f5;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 10px 16px;
+    outline:none;
+    width:220px;
+    transition: border-color .2s var(--ease);
   }
-  .dq-share-menu button:hover{ border-color: var(--ink); color: var(--ink); }
+  .dq-email-copy-form input:focus{ border-color: var(--ink); }
+  .dq-email-copy-form input::placeholder{ color: var(--muted-2); }
+  .dq-email-copy-form button{
+    background: var(--ink);
+    color:#fff;
+    border:none;
+    border-radius:999px;
+    padding:10px 20px;
+    font-family: var(--font);
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition: background .15s;
+  }
+  .dq-email-copy-form button:hover{ background:#000; }
   .dq-outro-footer{
     position:relative; z-index:1;
     display:flex; justify-content:center;
@@ -979,14 +994,13 @@
       <div class="dq-outro-sign">DINODESIGN®</div>
       <div class="dq-outro-actions">
         <button type="button" class="dq-outro-btn" id="downloadPdfBtn">Download as PDF</button>
-        <button type="button" class="dq-outro-btn dq-outro-btn-outline" id="shareBtn">Share</button>
+        <button type="button" class="dq-outro-btn dq-outro-btn-outline" id="emailCopyBtn">Email Me a Copy</button>
       </div>
-      <div class="dq-share-menu" id="shareMenu" hidden>
-        <button type="button" data-share="whatsapp">WhatsApp</button>
-        <button type="button" data-share="copy" id="copyLinkBtn">Copy Link</button>
+      <div class="dq-email-copy-form" id="emailCopyForm" hidden>
+        <input type="email" id="emailCopyInput" placeholder="you@example.com">
+        <button type="button" id="emailCopySendBtn">Send</button>
       </div>
       <div class="dq-outro-actions">
-        <button type="button" class="dq-outro-btn dq-outro-btn-outline" id="dropboxBtn">Add to Dropbox</button>
         <button type="button" class="dq-outro-btn dq-outro-btn-outline" id="gdriveBtn">Add to Google Drive</button>
       </div>
       <div class="dq-outro-footer" id="outroFooter"></div>
@@ -1370,9 +1384,7 @@
   }
 
   // ── cloud-save configuration ──────────────────────────────────────────
-  // Paste your own free Dropbox App key and Google OAuth Client ID below.
-  // See the setup notes for exactly how to get each one.
-  const DROPBOX_APP_KEY = '6mnq5qvknrjpgin';
+  // Paste your own free Google OAuth Client ID below.
   const GOOGLE_CLIENT_ID = '315617596866-40hj8cv21luobaj985a8dtoahgukkvhq.apps.googleusercontent.com';
   // ───────────────────────────────────────────────────────────────────────
 
@@ -1384,16 +1396,7 @@
   const NOTIFY_EMAIL = 'dinushakapurubandara@gmail.com';
   // ───────────────────────────────────────────────────────────────────────
 
-  // if this page was opened as a Dropbox-auth popup, grab the token and
-  // hand it back to the window that opened it, then close itself
-  if(window.opener && window.location.hash.includes('access_token')){
-    const params = new URLSearchParams(window.location.hash.slice(1));
-    const token = params.get('access_token');
-    if(token){ window.opener.postMessage({ type:'dropbox-auth', access_token: token }, window.location.origin); }
-    window.close();
-  }
-
-  // build the PDF document object (used by Download, Dropbox, and Drive)
+  // build the PDF document object (used by Download, Email, and Drive)
   function buildPdfDoc(){
     if(!window.jspdf) return null;
     const { jsPDF } = window.jspdf;
@@ -1445,86 +1448,6 @@
     });
   }
 
-  // share: use the native share sheet where available, otherwise a simple fallback menu
-  const shareBtn = document.getElementById('shareBtn');
-  const shareMenu = document.getElementById('shareMenu');
-  if(shareBtn){
-    shareBtn.addEventListener('click', async () => {
-      const shareData = {
-        title: 'Brand Discovery Session — DINODESIGN®',
-        text: "Here's my brand discovery questionnaire — take a look:",
-        url: window.location.href
-      };
-      if(navigator.share){
-        try{ await navigator.share(shareData); } catch(err){ /* user cancelled, do nothing */ }
-      } else {
-        shareMenu.hidden = !shareMenu.hidden;
-      }
-    });
-  }
-  if(shareMenu){
-    shareMenu.addEventListener('click', e => {
-      const btn = e.target.closest('button[data-share]');
-      if(!btn) return;
-      const type = btn.dataset.share;
-      const url = window.location.href;
-      const text = "Here's my brand discovery questionnaire — take a look:";
-      if(type === 'whatsapp'){
-        window.open('https://wa.me/?text=' + encodeURIComponent(text + ' ' + url), '_blank');
-      } else if(type === 'copy'){
-        navigator.clipboard.writeText(url).then(() => {
-          const original = btn.textContent;
-          btn.textContent = 'Copied!';
-          setTimeout(() => { btn.textContent = original; }, 1800);
-        });
-      }
-    });
-  }
-
-  // Add to Dropbox: opens a small Dropbox sign-in popup, then uploads the PDF
-  const dropboxBtn = document.getElementById('dropboxBtn');
-  if(dropboxBtn){
-    dropboxBtn.addEventListener('click', () => {
-      if(DROPBOX_APP_KEY === 'YOUR_DROPBOX_APP_KEY'){
-        alert('Dropbox isn\'t connected yet — add your Dropbox App key in the code to enable this button.');
-        return;
-      }
-      const redirectUri = window.location.href.split('#')[0];
-      const authUrl = 'https://www.dropbox.com/oauth2/authorize?client_id=' + encodeURIComponent(DROPBOX_APP_KEY) +
-        '&response_type=token&redirect_uri=' + encodeURIComponent(redirectUri) +
-        '&scope=' + encodeURIComponent('files.content.write files.content.read');
-      const popup = window.open(authUrl, 'dropbox-auth', 'width=500,height=650');
-
-      function onMessage(e){
-        if(e.origin !== window.location.origin || !e.data || e.data.type !== 'dropbox-auth') return;
-        window.removeEventListener('message', onMessage);
-        const doc = buildPdfDoc();
-        if(!doc) return;
-        const blob = doc.output('blob');
-        fetch('https://content.dropboxapi.com/2/files/upload', {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + e.data.access_token,
-            'Dropbox-API-Arg': JSON.stringify({ path: '/brand-discovery-session.pdf', mode: 'add', autorename: true }),
-            'Content-Type': 'application/octet-stream'
-          },
-          body: blob
-        }).then(async res => {
-          if(res.ok){ alert('Saved to your Dropbox!'); }
-          else {
-            const errText = await res.text().catch(() => '');
-            console.warn('Dropbox upload failed:', res.status, errText);
-            alert('Dropbox upload failed (error ' + res.status + '). Please try again.');
-          }
-        }).catch(err => {
-          console.warn('Dropbox upload failed:', err);
-          alert('Dropbox upload failed — please try again.');
-        });
-      }
-      window.addEventListener('message', onMessage);
-    });
-  }
-
   // Add to Google Drive: opens a small Google sign-in popup, then uploads the PDF
   const gdriveBtn = document.getElementById('gdriveBtn');
   if(gdriveBtn){
@@ -1551,13 +1474,38 @@
             const form = new FormData();
             form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
             form.append('file', blob);
-            fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
               method: 'POST',
               headers: { 'Authorization': 'Bearer ' + resp.access_token },
               body: form
-            }).then(res => {
-              if(res.ok){ alert('Saved to your Google Drive!'); }
-              else { alert('Google Drive upload failed — please try again.'); }
+            }).then(async res => {
+              if(!res.ok){ alert('Google Drive upload failed — please try again.'); return; }
+              const fileData = await res.json().catch(() => null);
+              const fileId = fileData && fileData.id;
+              if(!fileId){ alert('Saved to your Google Drive!'); return; }
+
+              // make the file viewable by anyone with the link, then build and copy that link
+              fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '/permissions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': 'Bearer ' + resp.access_token,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ role: 'reader', type: 'anyone' })
+              }).then(() => {
+                const shareLink = 'https://drive.google.com/file/d/' + fileId + '/view?usp=sharing';
+                if(navigator.clipboard){
+                  navigator.clipboard.writeText(shareLink).then(() => {
+                    alert('Saved to Google Drive! Share link copied to your clipboard:\n' + shareLink);
+                  }).catch(() => {
+                    alert('Saved to Google Drive! Here\'s your share link:\n' + shareLink);
+                  });
+                } else {
+                  alert('Saved to Google Drive! Here\'s your share link:\n' + shareLink);
+                }
+              }).catch(() => {
+                alert('Saved to Google Drive! (Could not generate a share link — you can share it manually from Drive.)');
+              });
             }).catch(() => alert('Google Drive upload failed — please try again.'));
           }
         });
@@ -1584,14 +1532,13 @@
   // send the collected answers to the studio's inbox once, when the client
   // reaches the thank-you screen
   let completionEmailSent = false;
-  function sendCompletionEmail(){
-    if(completionEmailSent) return;
+  function sendEmailTo(targetEmail, onDone){
     if(EMAILJS_PUBLIC_KEY.indexOf('YOUR_EMAILJS') === 0){
-      console.warn('DINODESIGN questionnaire: EmailJS isn\'t configured yet — add your Public Key, Service ID, and Template ID to send completion emails.');
+      console.warn('DINODESIGN questionnaire: EmailJS isn\'t configured yet — add your Public Key, Service ID, and Template ID.');
+      if(onDone) onDone(false);
       return;
     }
-    if(!window.emailjs){ console.warn('DINODESIGN questionnaire: EmailJS library did not load — check your network/ad-blocker.'); return; }
-    completionEmailSent = true;
+    if(!window.emailjs){ console.warn('DINODESIGN questionnaire: EmailJS library did not load — check your network/ad-blocker.'); if(onDone) onDone(false); return; }
 
     const brandNameField = document.getElementById('q_brandname');
     const brandName = (brandNameField && brandNameField.value.trim()) || 'A new client';
@@ -1601,15 +1548,53 @@
 
     emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
     emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      to_email: NOTIFY_EMAIL,
+      to_email: targetEmail,
       name: brandName,
-      email: NOTIFY_EMAIL,
+      email: targetEmail,
       brand_name: brandName,
       message: messageBody
     }).then(() => {
-      console.log('Completion email sent.');
+      console.log('Email sent to', targetEmail);
+      if(onDone) onDone(true);
     }).catch(err => {
-      console.warn('DINODESIGN questionnaire: completion email failed to send.', err);
+      console.warn('DINODESIGN questionnaire: email failed to send.', err);
+      if(onDone) onDone(false);
+    });
+  }
+
+  function sendCompletionEmail(){
+    if(completionEmailSent) return;
+    completionEmailSent = true;
+    sendEmailTo(NOTIFY_EMAIL);
+  }
+
+  // client-facing: let the client email themselves a copy of their own answers
+  const emailCopyBtn = document.getElementById('emailCopyBtn');
+  const emailCopyForm = document.getElementById('emailCopyForm');
+  const emailCopyInput = document.getElementById('emailCopyInput');
+  const emailCopySendBtn = document.getElementById('emailCopySendBtn');
+  if(emailCopyBtn && emailCopyForm){
+    emailCopyBtn.addEventListener('click', () => {
+      emailCopyForm.hidden = !emailCopyForm.hidden;
+      if(!emailCopyForm.hidden) emailCopyInput.focus();
+    });
+  }
+  if(emailCopySendBtn){
+    emailCopySendBtn.addEventListener('click', () => {
+      const val = (emailCopyInput.value || '').trim();
+      if(!val || !val.includes('@')){
+        emailCopyInput.style.borderColor = '#c0392b';
+        emailCopyInput.placeholder = 'Enter a valid email';
+        return;
+      }
+      const original = emailCopySendBtn.textContent;
+      emailCopySendBtn.textContent = 'Sending...';
+      emailCopySendBtn.disabled = true;
+      sendEmailTo(val, ok => {
+        emailCopySendBtn.textContent = ok ? 'Sent!' : 'Failed — try again';
+        emailCopySendBtn.disabled = false;
+        if(ok){ setTimeout(() => { emailCopyForm.hidden = true; emailCopySendBtn.textContent = original; emailCopyInput.value = ''; }, 1600); }
+      });
     });
   }
 
