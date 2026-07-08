@@ -145,26 +145,6 @@
   }
   .dq-field-group{ margin-bottom:22px; }
   .dq-field-group:last-child{ margin-bottom:6px; }
-  .dq-ai-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
-  .dq-ai-row label.dq-field-label{ margin-bottom:0; }
-  .dq-ai-btn{
-    background: transparent;
-    border: 1px solid var(--line-strong);
-    color: var(--ink-soft);
-    font-family: var(--font);
-    font-size:11.5px;
-    font-weight:600;
-    letter-spacing:.02em;
-    padding: 5px 11px;
-    border-radius: 999px;
-    cursor:pointer;
-    display:flex; align-items:center; gap:5px;
-    white-space:nowrap;
-    transition: border-color .15s, color .15s, background .15s;
-  }
-  .dq-ai-btn:hover{ border-color: var(--ink); color: var(--ink); }
-  .dq-ai-btn:disabled{ opacity:.55; cursor:default; }
-  .dq-ai-btn .dq-ai-spark{ font-size:12px; }
   label.dq-field-label{
     display:block;
     font-size:13px;
@@ -801,15 +781,15 @@
         <p class="dq-slide-sub">Where it began, why it began, and what makes it yours.</p>
         <div class="dq-field-group">
           <label class="dq-field-label">What's the story behind your business?</label>
-          <textarea id="q_story" data-ai-question="What is the story behind your business?" placeholder="How it all started..."></textarea>
+          <textarea id="q_story" placeholder="How it all started..."></textarea>
         </div>
         <div class="dq-field-group">
           <label class="dq-field-label">Why did you start it?</label>
-          <textarea id="q_why" data-ai-question="Why did you start this business?" placeholder="The reason, the spark, the problem you saw..."></textarea>
+          <textarea id="q_why" placeholder="The reason, the spark, the problem you saw..."></textarea>
         </div>
         <div class="dq-field-group">
           <label class="dq-field-label">What do you do differently?</label>
-          <textarea id="q_different" data-ai-question="What does this business do differently from others?" placeholder="What sets your approach apart..."></textarea>
+          <textarea id="q_different" placeholder="What sets your approach apart..."></textarea>
         </div>
       </div>
       <div class="dq-card-footer"></div>
@@ -823,7 +803,7 @@
         <p class="dq-slide-sub">Imagine your business 3–5 years from now.</p>
         <div class="dq-field-group">
           <label class="dq-field-label">What does success look like?</label>
-          <textarea class="dq-tall" id="q_vision" data-ai-question="Imagining this business 3-5 years from now, what does success look like?" placeholder="Paint the picture — team, reach, reputation, feeling..."></textarea>
+          <textarea class="dq-tall" id="q_vision" placeholder="Paint the picture — team, reach, reputation, feeling..."></textarea>
         </div>
       </div>
       <div class="dq-card-footer"></div>
@@ -837,15 +817,15 @@
         <p class="dq-slide-sub">Describe your ideal customer.</p>
         <div class="dq-field-group">
           <label class="dq-field-label">Who are they?</label>
-          <textarea id="q_who" data-ai-question="Who is this business's ideal customer? Describe who they are." placeholder="Age, lifestyle, mindset..."></textarea>
+          <textarea id="q_who" placeholder="Age, lifestyle, mindset..."></textarea>
         </div>
         <div class="dq-field-group">
           <label class="dq-field-label">What do they value?</label>
-          <textarea id="q_values" data-ai-question="What does this business's ideal customer value most?" placeholder="What matters most to them..."></textarea>
+          <textarea id="q_values" placeholder="What matters most to them..."></textarea>
         </div>
         <div class="dq-field-group">
           <label class="dq-field-label">Why would they choose you?</label>
-          <textarea id="q_choose" data-ai-question="Why would this business's ideal customer choose them over competitors?" placeholder="The reason they'd pick you over anyone else..."></textarea>
+          <textarea id="q_choose" placeholder="The reason they'd pick you over anyone else..."></textarea>
         </div>
       </div>
       <div class="dq-card-footer"></div>
@@ -859,15 +839,15 @@
         <p class="dq-slide-sub">Who are your main competitors? Please share links if possible.</p>
         <div class="dq-field-group">
           <label class="dq-field-label">Competitors <span class="dq-opt">(names and links)</span></label>
-          <textarea id="q_competitors" data-ai-question="Who are this business's main competitors?" placeholder="List a few, with links if you have them..."></textarea>
+          <textarea id="q_competitors" placeholder="List a few, with links if you have them..."></textarea>
         </div>
         <div class="dq-field-group">
           <label class="dq-field-label">What do you admire about them?</label>
-          <textarea id="q_admire" data-ai-question="What does this business admire about its competitors?" placeholder="What's working well for them..."></textarea>
+          <textarea id="q_admire" placeholder="What's working well for them..."></textarea>
         </div>
         <div class="dq-field-group">
           <label class="dq-field-label">What would you like your brand to do differently?</label>
-          <textarea id="q_diff_market" data-ai-question="What would this business like to do differently from its competitors?" placeholder="Where there's a gap or opportunity..."></textarea>
+          <textarea id="q_diff_market" placeholder="Where there's a gap or opportunity..."></textarea>
         </div>
       </div>
       <div class="dq-card-footer"></div>
@@ -1115,7 +1095,7 @@
         <h1 class="dq-slide-title">Final thoughts.</h1>
         <p class="dq-slide-sub">Before we begin... is there anything else you'd like me to know? A concern, a challenge, a goal, a vision — or simply something you feel is important.</p>
         <div class="dq-field-group">
-          <textarea class="dq-tall" id="q_final" data-ai-question="Is there anything else this business owner would like their brand designer to know before starting? Any concerns, challenges, goals, or vision." placeholder="Anything at all..."></textarea>
+          <textarea class="dq-tall" id="q_final" placeholder="Anything at all..."></textarea>
         </div>
       </div>
       <div class="dq-card-footer"></div>
@@ -1581,9 +1561,9 @@
   const NOTIFY_EMAIL = 'dinushakapurubandara@gmail.com';
   // ───────────────────────────────────────────────────────────────────────
 
-  // ── AI Suggest configuration ──────────────────────────────────────────
+  // ── PDF-to-Drive auto-upload configuration ────────────────────────────
   // Paste your Cloudflare Worker URL below, once it's deployed.
-  const AI_SUGGEST_WORKER_URL = 'YOUR_WORKER_URL_HERE';
+  const GMAIL_SEND_WORKER_URL = 'https://dinodesign-gmail-send.dinushakapurubandara.workers.dev';
   // ───────────────────────────────────────────────────────────────────────
 
   // build the PDF document object (used by Download, Email, and Drive)
@@ -1955,6 +1935,7 @@
   // send the collected answers to the studio's inbox once, when the client
   // reaches the thank-you screen
   let completionEmailSent = false;
+
   function sendEmailTo(targetEmail, onDone){
     if(EMAILJS_PUBLIC_KEY.indexOf('YOUR_EMAILJS') === 0){
       console.warn('DINODESIGN questionnaire: EmailJS isn\'t configured yet — add your Public Key, Service ID, and Template ID.');
@@ -1968,8 +1949,8 @@
 
     const bodyLines = collectAnswers().map(([label, value]) => label + ':\n' + value + '\n');
     if(uploadedImages.length){
-      const names = uploadedImages.map(img => img.name).join(', ');
-      bodyLines.push('Reference images attached (' + uploadedImages.length + '): ' + names + '\n(Full-size images are included in the downloadable PDF — email can\'t carry images directly.)\n');
+      const plural = uploadedImages.length === 1 ? 'image' : 'images';
+      bodyLines.push('Reference ' + plural + ' attached: ' + uploadedImages.length + '\n(Full-size images are included in the downloadable PDF — email can\'t carry images directly.)\n');
     }
     const messageBody = bodyLines.join('\n');
 
@@ -1989,10 +1970,51 @@
     });
   }
 
-  function sendCompletionEmail(){
+  // the studio's own completion notification: sent directly via Gmail, with
+  // the real PDF (including any reference images) attached
+  async function sendCompletionEmail(){
     if(completionEmailSent) return;
     completionEmailSent = true;
-    sendEmailTo(NOTIFY_EMAIL);
+
+    if(GMAIL_SEND_WORKER_URL.indexOf('YOUR_WORKER_URL') === 0){
+      console.warn('DINODESIGN questionnaire: Gmail send isn\'t configured yet — add your Worker URL to enable the completion email.');
+      return;
+    }
+
+    const doc = await buildPdfDoc();
+    if(!doc) return;
+    const dataUri = doc.output('datauristring');
+    const pdfBase64 = dataUri.split(',')[1];
+
+    const brandNameField = document.getElementById('q_brandname');
+    const brandName = (brandNameField && brandNameField.value.trim()) || 'A new client';
+    const safeName = brandName.replace(/[^a-z0-9\- ]/gi, '').trim().replace(/\s+/g, '-') || 'brand-discovery';
+    const fileName = safeName + '-discovery-session.pdf';
+
+    const bodyLines = collectAnswers().map(([label, value]) => label + ':\n' + value + '\n');
+    if(uploadedImages.length){
+      const plural = uploadedImages.length === 1 ? 'image' : 'images';
+      bodyLines.push('Reference ' + plural + ' attached: ' + uploadedImages.length + ' (included in the attached PDF)\n');
+    }
+    const textBody = 'New Brand Discovery submission from ' + brandName + '\n\n' + bodyLines.join('\n');
+
+    try{
+      const res = await fetch(GMAIL_SEND_WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toEmail: NOTIFY_EMAIL,
+          subject: 'Brand Discovery Session: ' + brandName,
+          textBody: textBody,
+          pdfBase64: pdfBase64,
+          fileName: fileName
+        })
+      });
+      if(res.ok){ console.log('Completion email with PDF attachment sent.'); }
+      else { console.warn('DINODESIGN questionnaire: completion email failed.', await res.text().catch(() => '')); }
+    } catch(err){
+      console.warn('DINODESIGN questionnaire: completion email failed.', err);
+    }
   }
 
   // client-facing: let the client email themselves a copy of their own answers
@@ -2024,59 +2046,6 @@
       });
     });
   }
-
-  // AI Suggest: adds a small button next to each supported question that
-  // asks an AI (via a secure Cloudflare Worker) to draft a starting answer
-  function requestAiSuggestion(textarea, btn){
-    if(AI_SUGGEST_WORKER_URL.indexOf('YOUR_WORKER_URL') === 0){
-      alert('AI Suggest isn\'t connected yet — add your Worker URL in the code to enable this button.');
-      return;
-    }
-    const question = textarea.dataset.aiQuestion || '';
-    const getVal = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
-    const payload = {
-      brandName: getVal('q_brandname'),
-      website: getVal('q_website'),
-      industry: getVal('q_industry'),
-      question: question
-    };
-    const original = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = 'Thinking…';
-    fetch(AI_SUGGEST_WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).then(res => res.json()).then(data => {
-      btn.disabled = false;
-      btn.innerHTML = original;
-      if(data && data.answer){
-        textarea.value = data.answer;
-        textarea.focus();
-      } else {
-        alert('AI Suggest couldn\'t generate an answer just now — please try again or write your own.');
-      }
-    }).catch(() => {
-      btn.disabled = false;
-      btn.innerHTML = original;
-      alert('AI Suggest failed — please check your connection and try again.');
-    });
-  }
-
-  document.querySelectorAll('textarea[data-ai-question]').forEach(ta => {
-    const label = ta.previousElementSibling;
-    if(!label || label.tagName !== 'LABEL') return;
-    const row = document.createElement('div');
-    row.className = 'dq-ai-row';
-    label.parentNode.insertBefore(row, label);
-    row.appendChild(label);
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'dq-ai-btn';
-    btn.innerHTML = '<span class="dq-ai-spark">✨</span> AI Suggest';
-    row.appendChild(btn);
-    btn.addEventListener('click', () => requestAiSuggestion(ta, btn));
-  });
 
   updateProgress();
 })();
