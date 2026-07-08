@@ -1575,16 +1575,138 @@
     doc.addImage(DINODESIGN_LOGO_BASE64, 'PNG', margin, y, logoWidth, logoHeight);
     y += logoHeight + 26;
 
+    const CHIP_FIELDS = ['Brand personality words', 'Typography styles', 'Brand touchpoints', 'Deliverables requested'];
+    const COLOR_FIELDS = ['Colours they love', 'Colours to avoid'];
+
+    function wrapChipsIntoRows(items, maxRowWidth, paddingX, gap){
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      const rows = [];
+      let currentRow = [];
+      let currentWidth = 0;
+      items.forEach(text => {
+        const pillWidth = doc.getTextWidth(text) + paddingX * 2;
+        const extra = currentRow.length > 0 ? gap : 0;
+        if(currentWidth + extra + pillWidth > maxRowWidth && currentRow.length > 0){
+          rows.push(currentRow);
+          currentRow = [];
+          currentWidth = 0;
+        }
+        currentRow.push({ text, width: pillWidth });
+        currentWidth += (currentRow.length > 1 ? gap : 0) + pillWidth;
+      });
+      if(currentRow.length) rows.push(currentRow);
+      return rows;
+    }
+
+    function drawChipRows(rows, x, startY){
+      const pillHeight = 20, gap = 6, rowGap = 8;
+      let cy = startY;
+      rows.forEach(row => {
+        let cx = x;
+        row.forEach(chip => {
+          doc.setFillColor(16, 16, 16);
+          doc.roundedRect(cx, cy, chip.width, pillHeight, pillHeight / 2, pillHeight / 2, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(10);
+          doc.text(chip.text, cx + chip.width / 2, cy + pillHeight / 2 + 3.2, { align: 'center' });
+          cx += chip.width + gap;
+        });
+        cy += pillHeight + rowGap;
+      });
+      doc.setTextColor(20);
+      return cy;
+    }
+
+    function wrapSwatchesIntoRows(hexColors, maxRowWidth, swatchSize, gap){
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10.5);
+      const rows = [];
+      let currentRow = [];
+      let currentWidth = 0;
+      hexColors.forEach(hex => {
+        const itemWidth = swatchSize + 6 + doc.getTextWidth(hex);
+        const extra = currentRow.length > 0 ? gap : 0;
+        if(currentWidth + extra + itemWidth > maxRowWidth && currentRow.length > 0){
+          rows.push(currentRow);
+          currentRow = [];
+          currentWidth = 0;
+        }
+        currentRow.push({ hex, width: itemWidth });
+        currentWidth += (currentRow.length > 1 ? gap : 0) + itemWidth;
+      });
+      if(currentRow.length) rows.push(currentRow);
+      return rows;
+    }
+
+    function drawSwatchRows(rows, x, startY){
+      const swatchSize = 14, gap = 14, rowGap = 10;
+      let cy = startY;
+      rows.forEach(row => {
+        let cx = x;
+        row.forEach(item => {
+          const hex = item.hex.replace('#', '');
+          const r = parseInt(hex.slice(0,2), 16) || 0;
+          const g = parseInt(hex.slice(2,4), 16) || 0;
+          const b = parseInt(hex.slice(4,6), 16) || 0;
+          doc.setFillColor(r, g, b);
+          doc.setDrawColor(210, 210, 210);
+          doc.roundedRect(cx, cy, swatchSize, swatchSize, 3, 3, 'FD');
+          doc.setTextColor(20);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10.5);
+          doc.text('#' + hex.toUpperCase(), cx + swatchSize + 6, cy + swatchSize - 3);
+          cx += item.width + gap;
+        });
+        cy += swatchSize + rowGap;
+      });
+      return cy;
+    }
+
     collectAnswers().forEach(([label, value]) => {
+      const pageBottom = doc.internal.pageSize.getHeight() - margin;
+
+      if(CHIP_FIELDS.includes(label)){
+        const items = value.split(', ').filter(Boolean);
+        const rows = wrapChipsIntoRows(items, maxWidth, 8, 6);
+        const blockHeight = 14 + 6 + rows.length * 28 + 16;
+        if(y + blockHeight > pageBottom){ doc.addPage(); y = 64; }
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(20);
+        doc.text(label, margin, y);
+        y += 20;
+        y = drawChipRows(rows, margin, y);
+        y += 12;
+        return;
+      }
+
+      if(COLOR_FIELDS.includes(label)){
+        const items = value.split(', ').filter(Boolean);
+        const rows = wrapSwatchesIntoRows(items, maxWidth, 14, 14);
+        const blockHeight = 14 + 6 + rows.length * 24 + 16;
+        if(y + blockHeight > pageBottom){ doc.addPage(); y = 64; }
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(20);
+        doc.text(label, margin, y);
+        y += 20;
+        y = drawSwatchRows(rows, margin, y);
+        y += 12;
+        return;
+      }
+
       const labelLines = doc.splitTextToSize(label, maxWidth);
       const valueLines = doc.splitTextToSize(value, maxWidth);
       const blockHeight = (labelLines.length * 14) + (valueLines.length * 14) + 20;
-      if(y + blockHeight > doc.internal.pageSize.getHeight() - margin){
+      if(y + blockHeight > pageBottom){
         doc.addPage();
         y = 64;
       }
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
+      doc.setTextColor(20);
       doc.text(labelLines, margin, y);
       y += labelLines.length * 14 + 4;
       doc.setFont('helvetica', 'normal');
