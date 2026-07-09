@@ -1726,193 +1726,112 @@
       return cy;
     }
 
-    // ── sectioned layout (eyebrow / title / subtitle / questions) ────────
+    // ── section 01: eyebrow + two-column basics grid + thick divider ─────
     const gv = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
-    const gChips = gridId => Array.from(document.querySelectorAll('#'+gridId+' .dq-chip.dq-selected')).map(c => c.textContent.trim());
-    const gSwatches = rowId => Array.from(document.querySelectorAll('#'+rowId+' .dq-swatch')).map(s => s.dataset.hex ? s.dataset.hex.toUpperCase() : '');
-    const gTypeStyles = () => Array.from(document.querySelectorAll('#typeGrid .dq-type-card.dq-selected')).map(c => c.querySelector('.dq-type-name').textContent.trim());
 
-    const PDF_SECTIONS = [
-      { eyebrow:'01 / About the Business', grid:[
-        ['Brand name', gv('q_brandname')], ['Website (optional)', gv('q_website')],
-        ['Industry', gv('q_industry')], ['Location', gv('q_location')]
-      ]},
-      { eyebrow:'02 / Brand Story', title:'Tell me your story.', sub:'Where it began, why it began, and what makes it yours.', items:[
-        { label:"What's the story behind your business?", value: gv('q_story') },
-        { label:'Why did you start it?', value: gv('q_why') },
-        { label:'What do you do differently?', value: gv('q_different') }
-      ]},
-      { eyebrow:'03 / Vision', title:'Where are we heading?', sub:'Imagine your business 3\u20135 years from now.', items:[
-        { label:'What does success look like?', value: gv('q_vision') }
-      ]},
-      { eyebrow:'04 / Audience', title:'Who are we designing for?', sub:'Describe your ideal customer.', items:[
-        { label:'Who are they?', value: gv('q_who') },
-        { label:'What do they value?', value: gv('q_values') },
-        { label:'Why would they choose you?', value: gv('q_choose') }
-      ]},
-      { eyebrow:'05 / Positioning', title:'Your market.', sub:'Who are your main competitors?', items:[
-        { label:'Competitors', value: gv('q_competitors') },
-        { label:'What do you admire about them?', value: gv('q_admire') },
-        { label:'What would you like your brand to do differently?', value: gv('q_diff_market') }
-      ]},
-      { eyebrow:'06 / Brand DNA', title:'Brand personality.', sub:'If your brand were a person... the words that describe it.', items:[
-        { label:'Personality words', chips: gChips('personalityGrid') },
-        { label:'Three words customers should use to describe the brand', value: gv('q_threewords') }
-      ]},
-      { eyebrow:'07 / Creative Direction', title:'Any inspiration to share?', items:[
-        { label:'Inspiration links', value: gv('q_inspiration') }
-      ]},
-      { eyebrow:'08 / Creative Direction', title:'Which colours feel right for your brand?', items:[
-        { colors: gSwatches('loveSwatchRow') }
-      ]},
-      { eyebrow:'09 / Creative Direction', title:"Are there any colours you'd prefer to avoid?", items:[
-        { colors: gSwatches('avoidSwatchRow') }
-      ]},
-      { eyebrow:'10 / Creative Direction', title:'Which typography styles best match your vision?', items:[
-        { chips: gTypeStyles() }
-      ]},
-      { eyebrow:'11 / Brand Touch-Points', title:'Where will your brand live?', items:[
-        { chips: gChips('touchpointsGrid') },
-        { label:'Other touchpoints', value: gv('q_touchpoints_other') }
-      ]},
-      { eyebrow:'12 / Project Scope', title:'Deliverables.', sub:'What would you like me to design?', items:[
-        { chips: gChips('deliverablesGrid') },
-        { label:'Other deliverables', value: gv('q_deliverables_other') }
-      ]},
-      { eyebrow:'13 / One Last Thing', title:'Final thoughts.', items:[
-        { value: gv('q_final') }
-      ]}
-    ];
+    const basicsPairs = [
+      ['Brand name', gv('q_brandname')], ['Website (optional)', gv('q_website')],
+      ['Industry', gv('q_industry')], ['Location', gv('q_location')]
+    ].filter(p => p[1]);
 
     const pageBottomAt = () => doc.internal.pageSize.getHeight() - margin;
     const ensureSpace = needed => { if(y + needed > pageBottomAt()){ doc.addPage(); y = 64; return true; } return false; };
 
-    const itemHasContent = it =>
-      (it.value && it.value.length) || (it.chips && it.chips.length) || (it.colors && it.colors.length);
-
-    let firstSectionDrawn = false;
-
-    PDF_SECTIONS.forEach(section => {
-      const gridPairs = section.grid ? section.grid.filter(p => p[1]) : [];
-      const items = section.items ? section.items.filter(itemHasContent) : [];
-      if(!gridPairs.length && !items.length) return; // skip empty sections
-
-      // thick divider between sections
-      if(firstSectionDrawn){
-        ensureSpace(140);
-        y += 8;
-        doc.setDrawColor(20, 20, 20);
-        doc.setLineWidth(2);
-        doc.line(margin, y, margin + maxWidth, y);
-        doc.setLineWidth(0.5);
-        y += 30;
-      } else {
-        firstSectionDrawn = true;
-      }
-      ensureSpace(120);
-
+    if(basicsPairs.length){
       // eyebrow
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8.5);
       doc.setTextColor(150);
-      doc.text(section.eyebrow.toUpperCase(), margin, y, { charSpace: 1 });
+      doc.text('01 / ABOUT THE BUSINESS', margin, y, { charSpace: 1 });
       doc.setTextColor(20);
       y += 22;
 
-      // section title + subtitle
-      if(section.title){
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(16);
-        const tLines = doc.splitTextToSize(section.title, maxWidth);
-        doc.text(tLines, margin, y);
-        y += tLines.length * 19 + 2;
-        if(section.sub){
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(10.5);
-          doc.setTextColor(140);
-          const sLines = doc.splitTextToSize(section.sub, maxWidth);
-          doc.text(sLines, margin, y);
-          doc.setTextColor(20);
-          y += sLines.length * 14;
-        }
-        y += 16;
-      }
-
-      // two-column basics grid (section 01)
-      if(gridPairs.length){
-        const colWidth = (maxWidth - 28) / 2;
-        for(let i = 0; i < gridPairs.length; i += 2){
-          const rowPairs = gridPairs.slice(i, i + 2);
-          let rowHeight = 0;
-          const prepared = rowPairs.map((pair, idx) => {
-            const x = margin + idx * (colWidth + 28);
-            doc.setFontSize(11);
-            const vLines = doc.splitTextToSize(pair[1], colWidth);
-            rowHeight = Math.max(rowHeight, 16 + vLines.length * 14 + 14);
-            return { x, label: pair[0], vLines };
-          });
-          ensureSpace(rowHeight);
-          prepared.forEach(cell => {
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(11);
-            doc.text(cell.label, cell.x, y);
-            doc.setFont('helvetica', 'normal');
-            doc.text(cell.vLines, cell.x, y + 16);
-          });
-          y += rowHeight;
-        }
-        y += 4;
-      }
-
-      // question items
-      items.forEach(it => {
-        if(it.chips){
-          const rows = wrapChipsIntoRows(it.chips, maxWidth, 8, 6);
-          const labelH = it.label ? 20 : 0;
-          ensureSpace(labelH + rows.length * 28 + 16);
-          if(it.label){
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(11);
-            doc.setTextColor(20);
-            doc.text(it.label, margin, y);
-            y += 20;
-          }
-          y = drawChipRows(rows, margin, y);
-          y += 10;
-          return;
-        }
-        if(it.colors){
-          const rows = wrapSwatchesIntoRows(it.colors, maxWidth, 14, 14);
-          const labelH = it.label ? 20 : 0;
-          ensureSpace(labelH + rows.length * 24 + 16);
-          if(it.label){
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(11);
-            doc.setTextColor(20);
-            doc.text(it.label, margin, y);
-            y += 20;
-          }
-          y = drawSwatchRows(rows, margin, y);
-          y += 10;
-          return;
-        }
-        // plain question + answer paragraph
-        doc.setFontSize(11);
-        const labelLines = it.label ? doc.splitTextToSize(it.label, maxWidth) : [];
-        const valueLines = doc.splitTextToSize(it.value, maxWidth);
-        ensureSpace(labelLines.length * 15 + valueLines.length * 14 + 24);
-        if(labelLines.length){
+      // two-column grid
+      const colWidth = (maxWidth - 28) / 2;
+      for(let i = 0; i < basicsPairs.length; i += 2){
+        const rowPairs = basicsPairs.slice(i, i + 2);
+        let rowHeight = 0;
+        const prepared = rowPairs.map((pair, idx) => {
+          const x = margin + idx * (colWidth + 28);
+          doc.setFontSize(11);
+          const vLines = doc.splitTextToSize(pair[1], colWidth);
+          rowHeight = Math.max(rowHeight, 16 + vLines.length * 14 + 14);
+          return { x, label: pair[0], vLines };
+        });
+        ensureSpace(rowHeight);
+        prepared.forEach(cell => {
           doc.setFont('helvetica', 'bold');
-          doc.setTextColor(20);
-          doc.text(labelLines, margin, y);
-          y += labelLines.length * 15 + 4;
-        }
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(60);
-        doc.text(valueLines, margin, y);
+          doc.setFontSize(11);
+          doc.text(cell.label, cell.x, y);
+          doc.setFont('helvetica', 'normal');
+          doc.text(cell.vLines, cell.x, y + 16);
+        });
+        y += rowHeight;
+      }
+
+      // thick divider under the basics section
+      y += 12;
+      doc.setDrawColor(20, 20, 20);
+      doc.setLineWidth(2);
+      doc.line(margin, y, margin + maxWidth, y);
+      doc.setLineWidth(0.5);
+      y += 34;
+    }
+
+    // ── everything else: the previous flat label/answer layout ───────────
+    const CHIP_FIELDS = ['Brand personality words', 'Typography styles', 'Brand touchpoints', 'Deliverables requested'];
+    const COLOR_FIELDS = ['Colours they love', 'Colours to avoid'];
+    const BASICS_LABELS = ['Brand name', 'Website', 'Industry', 'Location'];
+
+    collectAnswers().filter(([label]) => !BASICS_LABELS.includes(label)).forEach(([label, value]) => {
+      const pageBottom = pageBottomAt();
+
+      if(CHIP_FIELDS.includes(label)){
+        const items = value.split(', ').filter(Boolean);
+        const rows = wrapChipsIntoRows(items, maxWidth, 8, 6);
+        const blockHeight = 14 + 6 + rows.length * 28 + 16;
+        if(y + blockHeight > pageBottom){ doc.addPage(); y = 64; }
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
         doc.setTextColor(20);
-        y += valueLines.length * 14 + 18;
-      });
+        doc.text(label, margin, y);
+        y += 20;
+        y = drawChipRows(rows, margin, y);
+        y += 12;
+        return;
+      }
+
+      if(COLOR_FIELDS.includes(label)){
+        const items = value.split(', ').filter(Boolean);
+        const rows = wrapSwatchesIntoRows(items, maxWidth, 14, 14);
+        const blockHeight = 14 + 6 + rows.length * 24 + 16;
+        if(y + blockHeight > pageBottom){ doc.addPage(); y = 64; }
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(20);
+        doc.text(label, margin, y);
+        y += 20;
+        y = drawSwatchRows(rows, margin, y);
+        y += 12;
+        return;
+      }
+
+      const labelLines = doc.splitTextToSize(label, maxWidth);
+      const valueLines = doc.splitTextToSize(value, maxWidth);
+      const blockHeight = (labelLines.length * 14) + (valueLines.length * 14) + 20;
+      if(y + blockHeight > pageBottom){
+        doc.addPage();
+        y = 64;
+      }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(20);
+      doc.text(labelLines, margin, y);
+      y += labelLines.length * 14 + 4;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.text(valueLines, margin, y);
+      y += valueLines.length * 14 + 20;
     });
 
     if(uploadedImages.length){
